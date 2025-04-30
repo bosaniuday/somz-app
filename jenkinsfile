@@ -1,1 +1,43 @@
 
+pipeline {
+    agent any
+    options { timeout(time: 30, unit: 'MINUTES') }
+    environment { 
+        ARTIFACTS = '**/target/*.jar,**/dist/**' 
+    }
+    stages {
+        stage('Checkout') { 
+            steps { checkout scm } 
+        }
+        stage('Build') {
+            parallel {
+                stage('Frontend') {
+                    when { exists('package.json') }
+                    steps { sh 'yarn && yarn build' }
+                }
+                stage('Backend') {
+                    when { exists('build.gradle') }
+                    steps { sh './gradlew clean assemble' }
+                }
+            }
+        }
+        stage('Test') {
+            steps {
+                sh './gradlew test' 
+                sh 'yarn test' 
+                junit '**/test-results/**/*.xml'
+            }
+        }
+        stage('Deploy') {
+            when { branch 'main' }
+            steps {
+                sh './deploy.sh'
+                slackSend "Deployed ${env.BUILD_URL}"
+            }
+        }
+    }
+    post { 
+        always { cleanWs() } 
+        failure { slackSend "Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}" }
+    }
+}
