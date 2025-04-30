@@ -1,19 +1,39 @@
 pipeline {
-    
     agent any
     
     stages {
-        stage("build") {
+        stage('Build') {
             steps {
+                echo 'Building the application'
+                // Add actual build commands:
+                // sh 'mvn package'  // For Maven
+                // sh './gradlew build'  // For Gradle
+                // sh 'npm run build'  // For Node.js
             }
         }
-        stage("test") {
+        
+        stage('Test') {
             steps {
+                echo 'Running tests'
+                // Add test commands:
+                // sh 'mvn test'
+                // sh './gradlew test'
+                // sh 'npm test'
             }
         }
-        stage("deploy") {
+        
+        stage('Deploy') {
             steps {
+                echo 'Deploying to production'
+                // Add deployment commands:
+                // sh './deploy.sh'
             }
-        }        
-     }    
+        }
+    }
+    
+    post {
+        always {
+            echo 'Pipeline completed - cleaning workspace'
+        }
+    }
 }
